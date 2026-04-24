@@ -9,6 +9,7 @@ class ApiServer {
     required String email,
     required String password,
     String? companyId,
+    String? code,
   }) async {
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -19,6 +20,7 @@ class ApiServer {
           "email": email,
           "password": password,
           "companyId": companyId,
+          "code": code,
         },
       }),
     );
