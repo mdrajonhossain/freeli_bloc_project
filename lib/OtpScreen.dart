@@ -34,6 +34,7 @@ class _OtpScreenState extends State<OtpScreen> {
   Future<void> _saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('token', token);
+    await prefs.setBool('loggedIn', true);
   }
 
   void verifyOtp(String email, String password, String? companyId) async {

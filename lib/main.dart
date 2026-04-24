@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'CompanyListScreen.dart';
 import 'LoginScreen.dart';
 import 'OtpScreen.dart';
-import 'SolveScreen.dart';
+import 'TrastedScreen.dart';
 import 'HomePage.dart';
 
 import 'controller/stateBloc/LoginBloc.dart';
@@ -45,8 +45,6 @@ class _MyAppState extends State<MyApp> {
               CompanyListScreen(isDark: isDark, onThemeChange: toggleTheme),
           "/home": (context) =>
               HomePage(isDark: isDark, onThemeChange: toggleTheme),
-          "/solve": (context) =>
-              SolveScreen(isDark: isDark, onThemeChange: toggleTheme),
         },
       ),
     );
