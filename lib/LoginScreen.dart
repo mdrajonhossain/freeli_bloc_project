@@ -80,8 +80,9 @@ class _LoginScreenState extends State<LoginScreen> {
         if (state is LoginSuccess) {
           final loginData = state.data;
 
-          if (loginData['status'] == true) {
-            Navigator.pushReplacementNamed(
+          if (loginData['status'] == true &&
+              loginData['next_step'] == "companies") {
+            Navigator.pushNamed(
               context,
               "/company",
               arguments: {
@@ -93,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
         }
       },
+
       child: Scaffold(
         backgroundColor: bgColor,
         body: SafeArea(

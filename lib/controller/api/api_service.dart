@@ -8,13 +8,18 @@ class ApiServer {
   Future<Map<String, dynamic>> login({
     required String email,
     required String password,
+    String? companyId,
   }) async {
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "query": loginMutation,
-        "variables": {"email": email, "password": password, "companyId": null},
+        "variables": {
+          "email": email,
+          "password": password,
+          "companyId": companyId,
+        },
       }),
     );
 

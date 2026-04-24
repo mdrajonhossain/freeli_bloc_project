@@ -19,5 +19,19 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emit(LoginFailure(e.toString()));
       }
     });
+
+    on<LoginSelectCompany>((event, emit) async {
+      emit(LoginLoading());
+      try {
+        final loginData = await ApiServer().login(
+          email: event.email,
+          password: event.password,
+          companyId: event.companyId,
+        );
+        emit(LoginSuccess(loginData));
+      } catch (e) {
+        emit(LoginFailure(e.toString()));
+      }
+    });
   }
 }
