@@ -86,7 +86,7 @@ class _SplashPageState extends State<SplashPage>
   Future<void> _navigate() async {
     final prefs = await SharedPreferences.getInstance();
 
-    bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    bool isLoggedIn = prefs.getBool('islogin') ?? false;
 
     await Future.delayed(const Duration(seconds: 2));
 

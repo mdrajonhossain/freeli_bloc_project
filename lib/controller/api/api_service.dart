@@ -62,4 +62,42 @@ class ApiServer {
       throw Exception(loginData['message'] ?? "Login failed");
     }
   }
+
+  // ================= meapi
+  Future<Map<String, dynamic>> fetchMe() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+
+    if (token == null || token.isEmpty) {
+      throw Exception("User not logged in");
+    }
+
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode({"query": myQuery}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception("HTTP Error: ${response.statusCode}");
+    }
+
+    final responseData = jsonDecode(response.body);
+
+    // GraphQL error check
+    if (responseData['errors'] != null) {
+      throw Exception(responseData['errors'][0]['message']);
+    }
+
+    final meData = responseData['data']['me'];
+
+    if (meData == null) {
+      throw Exception("User not found / token expired");
+    }
+
+    return Map<String, dynamic>.from(meData);
+  }
 }

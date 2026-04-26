@@ -16,6 +16,16 @@ class HomePage extends StatelessWidget {
     required this.onThemeChange,
   });
 
+  Future<void> getMeData() async {
+    try {
+      final data = await ApiServer().fetchMe();
+
+      print(data['email']);
+    } catch (e) {
+      print("Error: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final bgColor = AppColors.getBackgroundColor(isDark);
@@ -67,7 +77,9 @@ class HomePage extends StatelessWidget {
                   "Settings",
                   style: TextStyle(color: Colors.white),
                 ),
-                onTap: () {},
+                onTap: () {
+                  getMeData();
+                },
               ),
 
               ListTile(
@@ -104,7 +116,10 @@ class HomePage extends StatelessWidget {
                     onPressed: () async {
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.remove('token');
-                      Navigator.pushNamed(context, "/login");
+                      if (context.mounted) {
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, "/login", (route) => false);
+                      }
                     },
                     icon: const Icon(Icons.logout, color: Colors.white),
                     label: const Text(

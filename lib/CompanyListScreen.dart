@@ -4,6 +4,7 @@ import 'AppColors.dart';
 import 'package:freeli/controller/stateBloc/LoginBloc.dart';
 import 'package:freeli/controller/stateBloc/LoginEven.dart';
 import 'package:freeli/controller/stateBloc/LoginState.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CompanyListScreen extends StatefulWidget {
   final bool isDark;
@@ -26,6 +27,13 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
     ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> saveLoginData(Map<String, dynamic> loginData) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString("token", loginData['token']);
+    await prefs.setBool("islogin", true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final Map<String, dynamic> args =
@@ -43,21 +51,9 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
         if (state is LoginSuccess) {
           final loginData = state.data;
           // After company selection, the API might return final success or OTP requirement
-          if (loginData['status'] == true) {
-            if (loginData['next_step'] == 'otp') {
-              Navigator.pushNamed(
-                context,
-                "/otp",
-                arguments: {
-                  "email": email,
-                  "companyId": loginData['company_id'],
-                  "step": "company",
-                  "session_token": loginData['session_token'],
-                },
-              );
-            } else {
-              Navigator.pushReplacementNamed(context, "/home");
-            }
+          if (loginData['status'] == true && loginData['token'] != null) {
+            saveLoginData(loginData);
+            Navigator.pushReplacementNamed(context, "/home");
           }
         }
       },
