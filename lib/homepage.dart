@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:freeli/controller/api/api_service.dart';
 import 'AppColors.dart';
 import 'connect/ChatsTab.dart';
 import 'connect/CallsTab.dart';
 import 'connect/DashboardTab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'graphql_config.dart';
 
 class HomePage extends StatelessWidget {
   final bool isDark;
@@ -16,14 +17,31 @@ class HomePage extends StatelessWidget {
     required this.onThemeChange,
   });
 
-  Future<void> getMeData() async {
-    try {
-      final data = await ApiServer().fetchMe();
+  void getMeData(BuildContext context) {
+    final GraphQLClient client = GraphQLProvider.of(context).value;
 
-      print(data['email']);
-    } catch (e) {
-      print("Error: $e");
-    }
+    client
+        .query(
+          QueryOptions(
+            document: gql(GraphQLSchema.getData),
+            fetchPolicy: FetchPolicy.networkOnly,
+          ),
+        )
+        .then((result) {
+          if (result.hasException) {
+            print("GraphQL Exception: ${result.exception.toString()}");
+          }
+
+          if (result.data != null && result.data!['me'] == null) {
+            print(
+              "SERVER ERROR: The 'me' object is null. This usually means the Authorization header is missing or the token is invalid.",
+            );
+          }
+
+          if (result.data != null && result.data!['me'] != null) {
+            print("Success! User Email: ${result.data?['me']?['email']}");
+          }
+        });
   }
 
   @override
@@ -39,33 +57,70 @@ class HomePage extends StatelessWidget {
           child: Column(
             children: [
               /// ================= PROFILE HEADER =================
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 40),
-                decoration: const BoxDecoration(color: Color(0xFF1565C0)),
-                child: const Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.person, size: 40, color: Colors.blue),
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "John Doe",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "john.doe@email.com",
-                      style: TextStyle(color: Colors.white70, fontSize: 13),
-                    ),
-                  ],
+              Query(
+                options: QueryOptions(
+                  document: gql(GraphQLSchema.getData),
+                  fetchPolicy: FetchPolicy.networkOnly,
                 ),
+                builder: (QueryResult result, {fetchMore, refetch}) {
+                  if (result.hasException) {
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      color: Colors.redAccent,
+                      child: Text(
+                        "Auth Error: ${result.exception?.graphqlErrors.isNotEmpty == true ? result.exception!.graphqlErrors.first.message : 'Check Token'}",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    );
+                  }
+
+                  final data = result.data?['me'];
+                  return Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    decoration: const BoxDecoration(color: Color(0xFF1565C0)),
+                    child: Column(
+                      children: [
+                        CircleAvatar(
+                          radius: 35,
+                          backgroundColor: Colors.white,
+                          backgroundImage: data?['img'] != null
+                              ? NetworkImage(data!['img'])
+                              : null,
+                          child: data?['img'] == null
+                              ? const Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: Colors.blue,
+                                )
+                              : null,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          data != null
+                              ? "${data['firstname']} ${data['lastname']}"
+                              : "Loading...",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          data?['email'] ?? "...",
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
 
               const SizedBox(height: 10),
@@ -78,7 +133,7 @@ class HomePage extends StatelessWidget {
                   style: TextStyle(color: Colors.white),
                 ),
                 onTap: () {
-                  getMeData();
+                  getMeData(context);
                 },
               ),
 
@@ -118,7 +173,10 @@ class HomePage extends StatelessWidget {
                       await prefs.remove('token');
                       if (context.mounted) {
                         Navigator.pushNamedAndRemoveUntil(
-                            context, "/login", (route) => false);
+                          context,
+                          "/login",
+                          (route) => false,
+                        );
                       }
                     },
                     icon: const Icon(Icons.logout, color: Colors.white),

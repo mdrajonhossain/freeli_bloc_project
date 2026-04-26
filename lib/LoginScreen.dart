@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:freeli/controller/stateBloc/LoginBloc.dart';
-import 'package:freeli/controller/stateBloc/LoginEven.dart';
-import 'package:freeli/controller/stateBloc/LoginState.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'graphql_config.dart';
 import 'AppColors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -75,94 +73,114 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final bgColor = AppColors.getBackgroundColor(widget.isDark);
 
-    return BlocListener<LoginBloc, LoginState>(
-      listener: (context, state) {
-        if (state is LoginSuccess) {
-          final loginData = state.data;
-          final email = emailController.text.trim();
+    return Mutation(
+      options: MutationOptions(
+        document: gql(GraphQLSchema.loginMutation),
+        onCompleted: (dynamic data) async {
+          if (data != null && data['login'] != null) {
+            final loginData = data['login'];
+            final email = emailController.text.trim();
 
-          if (loginData['status'] == true) {
-            if (loginData['next_step'] == "otp") {
-              Navigator.pushNamed(
-                context,
-                "/otp",
-                arguments: {
-                  "email": email,
-                  "session_token": loginData['session_token'],
-                  "step": "otp",
-                },
-              );
-            } else if (loginData['next_step'] == "company") {
-              Navigator.pushNamed(
-                context,
-                "/company",
-                arguments: {
-                  "email": email,
-                  "companies": loginData['companies'],
-                  "session_token": loginData['session_token'],
-                  "step": "company",
-                },
-              );
+            if (loginData['status'] == true) {
+              final prefs = await SharedPreferences.getInstance();
+
+              // পরবর্তী ধাপের জন্য session_token সংগ্রহ করা হচ্ছে
+              final token = loginData['session_token'] ?? loginData['token'];
+
+              if (!context.mounted) return;
+
+              if (loginData['next_step'] == "otp") {
+                Navigator.pushNamed(
+                  context,
+                  "/otp",
+                  arguments: {
+                    "email": email,
+                    "session_token": token,
+                    "step": "otp",
+                  },
+                );
+              } else if (loginData['next_step'] == "company") {
+                Navigator.pushNamed(
+                  context,
+                  "/company",
+                  arguments: {
+                    "email": email,
+                    "companies": loginData['companies'],
+                    "session_token": token,
+                    "step": "company",
+                  },
+                );
+              }
             }
           }
-        } else if (state is LoginFailure) {
+        },
+        onError: (OperationException? error) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                error?.graphqlErrors.isNotEmpty == true
+                    ? error!.graphqlErrors.first.message
+                    : "An error occurred",
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
-        }
-      },
+        },
+      ),
+      builder: (RunMutation runMutation, QueryResult? result) {
+        return Scaffold(
+          backgroundColor: bgColor,
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 80),
 
-      child: Scaffold(
-        backgroundColor: bgColor,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                const SizedBox(height: 80),
+                  Image.asset('assets/logo.webp', height: 50),
 
-                Image.asset('assets/logo.webp', height: 50),
+                  const SizedBox(height: 40),
 
-                const SizedBox(height: 40),
-
-                const Text(
-                  "Hello! Welcome back",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
+                  const Text(
+                    "Hello! Welcome back",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
 
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                _input(
-                  controller: emailController,
-                  hint: "Email",
-                  icon: Icons.email,
-                  keyboardType: TextInputType.emailAddress,
-                ),
+                  _input(
+                    controller: emailController,
+                    hint: "Email",
+                    icon: Icons.email,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
 
-                const SizedBox(height: 15),
+                  const SizedBox(height: 15),
 
-                _input(
-                  controller: passwordController,
-                  hint: "Password",
-                  icon: Icons.lock_outline,
-                  isPassword: true,
-                ),
+                  _input(
+                    controller: passwordController,
+                    hint: "Password",
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                  ),
 
-                const SizedBox(height: 25),
+                  const SizedBox(height: 25),
 
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: InkWell(
-                    onTap: () {
-                      final state = context.read<LoginBloc>().state;
-                      if (state is! LoginLoading) {
-                        if (emailController.text.trim().isEmpty ||
-                            passwordController.text.trim().isEmpty) {
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: InkWell(
+                      onTap: () {
+                        if (result?.isLoading ?? false) return;
+
+                        final email = emailController.text.trim();
+                        final password = passwordController.text.trim();
+
+                        if (email.isEmpty || password.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
@@ -172,68 +190,64 @@ class _LoginScreenState extends State<LoginScreen> {
                           );
                           return;
                         }
-                        context.read<LoginBloc>().add(
-                          LoginSubmitted(
-                            emailController.text.trim(),
-                            passwordController.text.trim(),
-                          ),
-                        );
-                      }
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: BlocBuilder<LoginBloc, LoginState>(
-                          builder: (context, state) {
-                            if (state is LoginLoading) {
-                              return const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
+
+                        runMutation({
+                          "email": email,
+                          "password": password,
+                          "deviceId": "mobile_app",
+                          "step": "validate",
+                        });
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.primaryGradient,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: (result?.isLoading ?? false)
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  "Sign In",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              );
-                            }
-                            return const Text(
-                              "Sign In",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 16,
-                              ),
-                            );
-                          },
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                const SizedBox(height: 30),
+                  const SizedBox(height: 30),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed: () => widget.onThemeChange(false),
-                      icon: const Icon(Icons.wb_sunny),
-                      color: Colors.yellow,
-                    ),
-                    IconButton(
-                      onPressed: () => widget.onThemeChange(true),
-                      icon: const Icon(Icons.nightlight_round),
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        onPressed: () => widget.onThemeChange(false),
+                        icon: const Icon(Icons.wb_sunny),
+                        color: Colors.yellow,
+                      ),
+                      IconButton(
+                        onPressed: () => widget.onThemeChange(true),
+                        icon: const Icon(Icons.nightlight_round),
+                        color: Colors.white,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

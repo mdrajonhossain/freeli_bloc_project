@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'graphql_config.dart';
 
 import 'CompanyListScreen.dart';
 import 'AppColors.dart';
@@ -8,9 +9,9 @@ import 'LoginScreen.dart';
 import 'OtpScreen.dart';
 import 'TrastedScreen.dart';
 import 'HomePage.dart';
-import 'controller/stateBloc/LoginBloc.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -32,8 +33,8 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [BlocProvider(create: (_) => LoginBloc())],
+    return GraphQLProvider(
+      client: GraphQLConfig.graphInit(),
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         initialRoute: '/',
