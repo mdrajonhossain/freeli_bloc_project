@@ -31,9 +31,10 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
     final Map<String, dynamic> args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
         {};
+
     final List<dynamic> companiesData = args['companies'] ?? [];
+    final String? sessionToken = args['session_token'];
     final String email = args['email'] ?? '';
-    final String password = args['password'] ?? '';
 
     final bgColor = AppColors.getBackgroundColor(widget.isDark);
 
@@ -49,8 +50,9 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
                 "/otp",
                 arguments: {
                   "email": email,
-                  "password": password,
-                  "companyId": loginData['company_Id'],
+                  "companyId": loginData['company_id'],
+                  "step": "company",
+                  "session_token": loginData['session_token'],
                 },
               );
             } else {
@@ -149,9 +151,9 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
                                     );
                                     context.read<LoginBloc>().add(
                                       LoginSelectCompany(
-                                        email,
-                                        password,
-                                        companyId,
+                                        email: email,
+                                        companyId: companyId,
+                                        sessionToken: sessionToken,
                                       ),
                                     );
                                   },

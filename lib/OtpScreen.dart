@@ -31,13 +31,11 @@ class _OtpScreenState extends State<OtpScreen> {
 
   String getOtp() => controllers.map((e) => e.text).join();
 
-  Future<void> _saveToken(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('token', token);
-    await prefs.setBool('isLoggedIn', true);
-  }
-
-  void verifyOtp(String email, String password, String? companyId) async {
+  void verifyOtp({
+    required String email,
+    String? sessionToken,
+    required String step,
+  }) async {
     final otpCode = getOtp();
     if (otpCode.length != 6) {
       ScaffoldMessenger.of(
@@ -47,7 +45,12 @@ class _OtpScreenState extends State<OtpScreen> {
     }
 
     context.read<LoginBloc>().add(
-      LoginVerifyOtp(email, password, companyId, otpCode),
+      LoginVerifyOtp(
+        otpCode,
+        email: email,
+        sessionToken: sessionToken,
+        step: step,
+      ),
     );
   }
 
@@ -111,32 +114,39 @@ class _OtpScreenState extends State<OtpScreen> {
     final Map<String, dynamic> args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
         {};
+    final String? sessionToken = args['session_token'];
+    final String step = args['step'] ?? 'validate';
     final String email = args['email'] ?? '';
-    final String password = args['password'] ?? '';
-    final String? companyId = args['companyId'];
 
     final bgColor = AppColors.getBackgroundColor(widget.isDark);
 
-    // 📱 responsive box size fix (IMPORTANT)
     double screenWidth = MediaQuery.of(context).size.width;
     double boxSize = (screenWidth - 120) / 6; // perfect fit 6 boxes
 
     return BlocListener<LoginBloc, LoginState>(
-      listener: (context, state) async {
+      listener: (context, state) {
         if (state is LoginSuccess) {
           final loginData = state.data;
+          print("8888888888888888: $loginData"); // Debug print
           if (loginData['status'] == true) {
-            if (loginData['token'] != null) {
-              await _saveToken(loginData['token']);
+            if (loginData['next_step'] == "company") {
+              Navigator.pushNamed(
+                context,
+                "/company",
+                arguments: {
+                  "email": email,
+                  "session_token": loginData['session_token'],
+                  "code": getOtp(),
+                  "step": "company",
+                  "companies": loginData['companies'],
+                },
+              );
             }
-            if (mounted) {
-              Navigator.pushReplacementNamed(context, "/home");
-            }
-          } else {
-            _showError(loginData['message'] ?? "OTP verification failed");
           }
         } else if (state is LoginFailure) {
-          _showError(state.error);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+          );
         }
       },
       child: Scaffold(
@@ -219,8 +229,11 @@ class _OtpScreenState extends State<OtpScreen> {
                               color: Colors.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(15),
-                                onTap: () =>
-                                    verifyOtp(email, password, companyId),
+                                onTap: () => verifyOtp(
+                                  email: email,
+                                  sessionToken: sessionToken,
+                                  step: step,
+                                ),
                                 child: Center(
                                   child: BlocBuilder<LoginBloc, LoginState>(
                                     builder: (context, state) {

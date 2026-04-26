@@ -79,19 +79,36 @@ class _LoginScreenState extends State<LoginScreen> {
       listener: (context, state) {
         if (state is LoginSuccess) {
           final loginData = state.data;
+          final email = emailController.text.trim();
 
-          if (loginData['status'] == true &&
-              loginData['next_step'] == "companies") {
-            Navigator.pushNamed(
-              context,
-              "/company",
-              arguments: {
-                "companies": loginData['companies'],
-                "email": emailController.text,
-                "password": passwordController.text,
-              },
-            );
+          if (loginData['status'] == true) {
+            if (loginData['next_step'] == "otp") {
+              Navigator.pushNamed(
+                context,
+                "/otp",
+                arguments: {
+                  "email": email,
+                  "session_token": loginData['session_token'],
+                  "step": "otp",
+                },
+              );
+            } else if (loginData['next_step'] == "company") {
+              Navigator.pushNamed(
+                context,
+                "/company",
+                arguments: {
+                  "email": email,
+                  "companies": loginData['companies'],
+                  "session_token": loginData['session_token'],
+                  "step": "company",
+                },
+              );
+            }
           }
+        } else if (state is LoginFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+          );
         }
       },
 
