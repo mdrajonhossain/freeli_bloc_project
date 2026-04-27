@@ -218,6 +218,7 @@ class AppDrawer extends StatelessWidget {
         onTap: () async {
           final prefs = await SharedPreferences.getInstance();
           await prefs.remove('token');
+          await prefs.remove('islogin');
 
           Navigator.pushNamedAndRemoveUntil(
             context,
