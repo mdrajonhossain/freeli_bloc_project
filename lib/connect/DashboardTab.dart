@@ -18,7 +18,7 @@ class DashboardTab extends StatelessWidget {
             children: [
               /// ================= GREETING =================
               const Text(
-                "Hi, Md. Rajon Hossain,",
+                "Hi, User,",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 26,
