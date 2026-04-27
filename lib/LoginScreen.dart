@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: TextField(
         controller: controller,
@@ -132,6 +132,8 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (RunMutation runMutation, QueryResult? result) {
         return Scaffold(
           backgroundColor: bgColor,
+
+          /// ================= APPBAR =================
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
@@ -139,43 +141,50 @@ class _LoginScreenState extends State<LoginScreen> {
               IconButton(
                 onPressed: () => widget.onThemeChange(!widget.isDark),
                 icon: Icon(
-                  widget.isDark
-                      ? Icons.wb_sunny_outlined
-                      : Icons.nightlight_round_outlined,
+                  widget.isDark ? Icons.light_mode : Icons.dark_mode,
                   size: 20,
                 ),
                 color: Colors.white54,
               ),
             ],
           ),
+
+          /// ================= BODY =================
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 20),
-                  Image.asset('assets/logo.webp', height: 50),
 
-                  const SizedBox(height: 40),
+                  Center(child: Image.asset('assets/logo.webp', height: 55)),
 
-                  const Text(
-                    "Welcome Back",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 35),
+
+                  const Center(
+                    child: Text(
+                      "Welcome Back",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
 
                   const SizedBox(height: 8),
 
-                  Text(
-                    "Sign in to continue your workflow",
-                    style: TextStyle(color: secondaryTextColor, fontSize: 14),
+                  Center(
+                    child: Text(
+                      "Sign in to continue your workflow",
+                      style: TextStyle(color: secondaryTextColor, fontSize: 14),
+                    ),
                   ),
 
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 35),
 
+                  /// EMAIL
                   _input(
                     controller: emailController,
                     hint: "Email",
@@ -185,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 15),
 
+                  /// PASSWORD
                   _input(
                     controller: passwordController,
                     hint: "Password",
@@ -192,9 +202,60 @@ class _LoginScreenState extends State<LoginScreen> {
                     isPassword: true,
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 12),
 
-                  /// ✅ FIXED BUTTON
+                  /// OTP + FORGOT PASSWORD
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          "Sign In With OTP",
+                          style: TextStyle(
+                            color: Colors.lightBlueAccent,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: secondaryTextColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  /// REMEMBER ME
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: rememberMe,
+                        activeColor: Colors.lightBlueAccent,
+                        onChanged: (value) {
+                          setState(() {
+                            rememberMe = value ?? false;
+                          });
+                        },
+                      ),
+                      Text(
+                        "Remember Me",
+                        style: TextStyle(
+                          color: secondaryTextColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  /// SIGN IN BUTTON
                   SizedBox(
                     width: double.infinity,
                     height: 52,
@@ -255,7 +316,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 25),
+
+                  /// SIGN UP
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Don't have an account?",
+                        style: TextStyle(
+                          color: secondaryTextColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        child: const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
                 ],
               ),
             ),
