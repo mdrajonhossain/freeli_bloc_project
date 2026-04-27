@@ -131,7 +131,7 @@ class _ChatsTabState extends State<ChatsTab>
               child: FloatingActionButton(
                 backgroundColor: AppColors.accentColor,
                 onPressed: () {},
-                child: const Icon(Icons.add, size: 40, color: Colors.white),
+                child: const Icon(Icons.add, size: 35, color: Colors.white),
               ),
             ),
           ),
