@@ -142,8 +142,9 @@ class _ChatsTabState extends State<ChatsTab>
 
   @override
   Widget build(BuildContext context) {
+    const Color primaryBlue = Color(0xFF152A6E);
     return Scaffold(
-      backgroundColor: AppColors.getBackgroundColor(false),
+      backgroundColor: primaryBlue,
 
       body: ListView.builder(
         padding: const EdgeInsets.only(
