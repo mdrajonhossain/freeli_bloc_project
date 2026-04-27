@@ -5,7 +5,8 @@ class DashboardTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primaryBlue = Color(0xFF152A6E);
+    const Color primaryBlue = Color(0xFF0C1F5E);
+    const Color surfaceBlue = Color(0xFF152A6E);
 
     return Scaffold(
       backgroundColor: primaryBlue,
