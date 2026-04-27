@@ -6,6 +6,7 @@ import 'connect/DashboardTab.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'graphql_config.dart';
+import 'AppDrawer.dart';
 
 class HomePage extends StatelessWidget {
   final bool isDark;
@@ -52,144 +53,7 @@ class HomePage extends StatelessWidget {
       length: 3,
       child: Scaffold(
         backgroundColor: bgColor,
-        endDrawer: Drawer(
-          backgroundColor: bgColor,
-          child: Column(
-            children: [
-              /// ================= PROFILE HEADER =================
-              Query(
-                options: QueryOptions(
-                  document: gql(GraphQLSchema.getData),
-                  fetchPolicy: FetchPolicy.networkOnly,
-                ),
-                builder: (QueryResult result, {fetchMore, refetch}) {
-                  if (result.hasException) {
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      color: Colors.redAccent,
-                      child: Text(
-                        "Auth Error: ${result.exception?.graphqlErrors.isNotEmpty == true ? result.exception!.graphqlErrors.first.message : 'Check Token'}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }
-
-                  final data = result.data?['me'];
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 40),
-                    decoration: const BoxDecoration(color: Color(0xFF1565C0)),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 35,
-                          backgroundColor: Colors.white,
-                          backgroundImage: data?['img'] != null
-                              ? NetworkImage(data!['img'])
-                              : null,
-                          child: data?['img'] == null
-                              ? const Icon(
-                                  Icons.person,
-                                  size: 40,
-                                  color: Colors.blue,
-                                )
-                              : null,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          data != null
-                              ? "${data['firstname']} ${data['lastname']}"
-                              : "Loading...",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          data?['email'] ?? "...",
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 10),
-
-              /// ================= MENU ITEMS =================
-              ListTile(
-                leading: const Icon(Icons.settings, color: Colors.white),
-                title: const Text(
-                  "Settings",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  getMeData(context);
-                },
-              ),
-
-              ListTile(
-                leading: const Icon(Icons.person, color: Colors.white),
-                title: const Text(
-                  "Profile",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {},
-              ),
-
-              ListTile(
-                leading: const Icon(Icons.notifications, color: Colors.white),
-                title: const Text(
-                  "Notifications",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {},
-              ),
-
-              /// ================= LOGOUT BUTTON =================
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 45,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    onPressed: () async {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.remove('token');
-                      if (context.mounted) {
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          "/login",
-                          (route) => false,
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.logout, color: Colors.white),
-                    label: const Text(
-                      "Logout",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        endDrawer: AppDrawer(isDark: isDark, onThemeChange: onThemeChange),
 
         /// ================= APP BAR =================
         appBar: AppBar(

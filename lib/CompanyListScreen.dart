@@ -19,6 +19,9 @@ class CompanyListScreen extends StatefulWidget {
 }
 
 class _CompanyListScreenState extends State<CompanyListScreen> {
+  /// Tracks the ID of the company currently being selected to show a local loading state.
+  String? _selectedCompanyId;
+
   void _showError(String message) {
     ScaffoldMessenger.of(
       context,
@@ -51,6 +54,13 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
           if (data != null && data['login'] != null) {
             final loginData = data['login'];
 
+            // Clear selection state on success
+            if (mounted) {
+              setState(() {
+                _selectedCompanyId = null;
+              });
+            }
+
             if (loginData['status'] == true && loginData['token'] != null) {
               await saveLoginData(loginData);
               if (!context.mounted) return;
@@ -59,6 +69,11 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
           }
         },
         onError: (error) {
+          if (mounted) {
+            setState(() {
+              _selectedCompanyId = null;
+            });
+          }
           _showError(error?.graphqlErrors.first.message ?? "Selection failed");
         },
       ),
@@ -125,7 +140,10 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              trailing: isLoading
+
+                              /// Display the loading indicator only if this specific item is loading
+                              trailing:
+                                  isLoading && _selectedCompanyId == companyId
                                   ? const SizedBox(
                                       height: 20,
                                       width: 20,
@@ -154,13 +172,11 @@ class _CompanyListScreenState extends State<CompanyListScreen> {
                                           ),
                                         ),
                                       );
-                                      // print({
-                                      //   "email": email,
-                                      //   "device_id": "mobile_app",
-                                      //   "company_id": company['company_id'],
-                                      //   "step": "company",
-                                      //   "session_token": sessionToken,
-                                      // });
+
+                                      setState(() {
+                                        _selectedCompanyId = companyId;
+                                      });
+
                                       runMutation({
                                         "email": email,
                                         "deviceId": "mobile_app",

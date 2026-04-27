@@ -20,6 +20,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool obscurePassword = true;
+  bool rememberMe = false;
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -46,6 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: TextField(
         controller: controller,
         obscureText: isPassword ? obscurePassword : false,
+        style: const TextStyle(color: Colors.black87),
         keyboardType: keyboardType,
         decoration: InputDecoration(
           prefixIcon: Icon(icon),
@@ -72,6 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final bgColor = AppColors.getBackgroundColor(widget.isDark);
+    final secondaryTextColor = Colors.white70;
 
     return Mutation(
       options: MutationOptions(
@@ -130,27 +133,48 @@ class _LoginScreenState extends State<LoginScreen> {
       builder: (RunMutation runMutation, QueryResult? result) {
         return Scaffold(
           backgroundColor: bgColor,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            actions: [
+              IconButton(
+                onPressed: () => widget.onThemeChange(!widget.isDark),
+                icon: Icon(
+                  widget.isDark
+                      ? Icons.wb_sunny_outlined
+                      : Icons.nightlight_round_outlined,
+                  size: 20,
+                ),
+                color: Colors.white54,
+              ),
+            ],
+          ),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  const SizedBox(height: 80),
+                  const SizedBox(height: 20),
 
                   Image.asset('assets/logo.webp', height: 50),
 
                   const SizedBox(height: 40),
 
                   const Text(
-                    "Hello! Welcome back",
+                    "Welcome Back",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Sign in to continue your workflow",
+                    style: TextStyle(color: secondaryTextColor, fontSize: 14),
+                  ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 40),
 
                   _input(
                     controller: emailController,
@@ -168,7 +192,67 @@ class _LoginScreenState extends State<LoginScreen> {
                     isPassword: true,
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 15),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        child: const Text(
+                          "Sign In With OTP",
+                          style: TextStyle(
+                            color: Colors.lightBlueAccent,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                        child: Text(
+                          "Forgot Your Password?",
+                          style: TextStyle(
+                            color: secondaryTextColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  Row(
+                    children: [
+                      SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: Checkbox(
+                          value: rememberMe,
+                          activeColor: Colors.lightBlueAccent,
+                          side: const BorderSide(color: Colors.white54),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          onChanged: (value) {
+                            setState(() {
+                              rememberMe = value ?? false;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Remember Me",
+                        style: TextStyle(
+                          color: secondaryTextColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
 
                   SizedBox(
                     width: double.infinity,
@@ -227,18 +311,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 30),
 
+                  /// Minimalist Sign Up Option
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      IconButton(
-                        onPressed: () => widget.onThemeChange(false),
-                        icon: const Icon(Icons.wb_sunny),
-                        color: Colors.yellow,
+                      Text(
+                        "Don't have an account?",
+                        style: TextStyle(
+                          color: secondaryTextColor,
+                          fontSize: 14,
+                        ),
                       ),
-                      IconButton(
-                        onPressed: () => widget.onThemeChange(true),
-                        icon: const Icon(Icons.nightlight_round),
-                        color: Colors.white,
+                      TextButton(
+                        onPressed: () {
+                          // Navigate to Sign Up
+                        },
+                        child: const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
                       ),
                     ],
                   ),
